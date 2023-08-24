@@ -1,14 +1,13 @@
 #include "custom_shell.h"
 
-
 /**
  * initialize_shell - Allocates memory for the shell and sets
  * initial values.
  * @shell: double pointer to the custom shell.
  * @envp: Environment variables passed from the main function.
- * 
+ *
  * Return: Success status on creation.
-*/
+ */
 void initialize_shell(ShellState_t **shell, char **envp)
 {
     *shell = malloc(sizeof(ShellState_t));
@@ -40,6 +39,7 @@ void initialize_shell(ShellState_t **shell, char **envp)
  */
 void parse_input_line(ShellState_t *shell, char *input_line)
 {
+    shell->line_number++;
     shell->command_arguments = split_string_by_delimiter(input_line, " ");
 
     shell->builtin_command = find_builtin_command(shell->command_arguments[0]);
@@ -98,8 +98,7 @@ void (*find_builtin_command(char *command_name))(ShellState_t *)
         {"exit", exit_shell},
         {"quit", exit_shell},
         {"env", print_environment_variables},
-        {NULL, NULL}
-    };
+        {NULL, NULL}};
 
     for (index = 0; builtins[index].name; index++)
     {

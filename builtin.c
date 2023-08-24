@@ -7,7 +7,7 @@
  */
 void exit_shell(ShellState_t *shell)
 {
-    shell->is_active = FALSE;
+	shell->is_active = FALSE;
 }
 
 /**
@@ -17,10 +17,10 @@ void exit_shell(ShellState_t *shell)
  */
 void print_environment_variables(ShellState_t *shell)
 {
-    int i = 0;
+	int i = 0;
 
-    while (shell->environment_variables[i])
-    {
-        printf("%s\n", shell->environment_variables[i++]);
-    }
+	while (shell->environment_variables[i])
+	{
+		printf("%s\n", shell->environment_variables[i++]);
+	}
 }

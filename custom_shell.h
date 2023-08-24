@@ -25,43 +25,43 @@
  * @environment_variables: Array of strings representing
  * environmental variables.
  * @builtin_command: Function pointer to a built-in command (if any).
- * @excecutable_command_path: Path to excecutable file to
+ * @executable_command_path: Path to excecutable file to
  * invoke (if any).
  * @command_arguments: Strings containing arguments parsed
  * from the last input.
  * Description: This struct defines core parameters for the
  * shell's interpreter.
 */
-typedef struct ShellState {
-    int line_number;
-    int exit_status;
-    int is_active;
-    char **path_directories;
-    char **environment_variables;
-    void (*builtin_command)(struct ShellState *);
-    char *executable_command_path;
-    char **command_arguments;
+typedef struct ShellState
+{
+	int line_number;
+	int exit_status;
+	int is_active;
+	char **path_directories;
+	char **environment_variables;
+	void (*builtin_command)(struct ShellState *);
+	char *executable_command_path;
+	char **command_arguments;
 } ShellState_t;
 
 /**
  * struct BuiltInCommand - Contains information to build a
  * table of built-in commands.
  * @name: Name of the built-in command.
- * @excecute: Function pointer to the function that excecutes
+ * @execute: Function pointer to the function that excecutes
  * the command.
- * 
  * Description: This holds necessary information to construct
- * a table of built-in commands specifying its name and function responsible for its execution.
+ * a table of built-in commands specifying its name and function
+ * responsible for its execution.
 */
-typedef struct BuiltInCommand {
-    char *name;
-    void (*execute)(ShellState_t *shell);
+typedef struct BuiltInCommand
+{
+	char *name;
+	void (*execute)(ShellState_t *shell);
 } BuiltInCommand_t;
-
 
 void run_shell(ShellState_t *shell);
 void execute_script(ShellState_t *shell);
-
 void initialize_shell(ShellState_t **shell, char **envp);
 void parse_input_line(ShellState_t *shell, char *input_line);
 void release_shell(ShellState_t *shell);

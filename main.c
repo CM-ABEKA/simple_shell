@@ -9,25 +9,25 @@
  * Return: EXIT_SUCCESS (0) or EXIT_FAILURE (1).
  */
 int main(
-    __attribute__ ((unused)) int argc,
-    __attribute__ ((unused)) char *argv[],
-    char **envp
+__attribute__ ((unused)) int argc,
+__attribute__ ((unused)) char *argv[],
+char **envp
 )
 {
-    ShellState_t *shell = NULL;
-    int exit_status = 0;
-    int is_interactive = isatty(STDIN_FILENO);
+ShellState_t *shell = NULL;
+int exit_status = 0;
+int is_interactive = isatty(STDIN_FILENO);
 
-    initialize_shell(&shell, envp);
+initialize_shell(&shell, envp);
 
-    if (is_interactive)
-        run_shell(shell);
-    else
-        execute_script(shell);
+if (is_interactive)
+run_shell(shell);
+else
+execute_script(shell);
 
-    release_shell(shell);
+release_shell(shell);
 
-    return (exit_status);
+return (exit_status);
 }
 
 /**
@@ -38,16 +38,16 @@ int main(
  */
 void run_shell(ShellState_t *shell)
 {
-    char *line = NULL;
+char *line = NULL;
 
-    while (shell->is_active == TRUE)
-    {
-        printf("($) ");
-        line = take_input();
-        parse_input_line(shell, line);
-        free(line);
-        fflush(NULL);
-    }
+while (shell->is_active == TRUE)
+{
+printf("($) ");
+line = take_input();
+parse_input_line(shell, line);
+free(line);
+fflush(NULL);
+}
 }
 
 /**
@@ -58,18 +58,19 @@ void run_shell(ShellState_t *shell)
  */
 void execute_script(ShellState_t *shell)
 {
-    char *current_line = NULL;
+char *current_line = NULL;
 
-    do {
-        current_line = take_input();
+do {
+current_line = take_input();
 
-        if (current_line != NULL)
-            parse_input_line(shell, current_line);
-        else
-            shell->is_active = FALSE;
+if (current_line != NULL)
+parse_input_line(shell, current_line);
+else
+shell->is_active = FALSE;
 
-        free(current_line);
-        fflush(NULL);
+free(current_line);
+fflush(NULL);
 
-    } while (shell->is_active == TRUE);
+} while (shell->is_active == TRUE);
+
 }

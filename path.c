@@ -1,149 +1,171 @@
-#include "custom_shell.h"
-
+#include "shell.h"
 /**
- * find_executable_path - Attempts to find the executable
- * path to argv[0].
- * @shell: Pointer to the ShellState.
- * Return: Pointer to the path if found, NULL if not found.
+ * path_execute - executes a command in the path
+ * @command: full path to the command
+ * @vars: pointer to struct of variables
+ *
+ * Return: 0 on succcess, 1 on failure
  */
-char *find_executable_path(ShellState_t *shell)
+int path_execute(char *command, vars_t *vars)
 {
-struct stat file_info;
-char *command_path;
-char *test_path;
-int i = 0;
-
-command_path = malloc(sizeof(char) * 255);
-snprintf(command_path, 255, "%s", shell->command_arguments[0]);
-
-while (shell->path_directories[i])
-{
-if (stat(command_path, &file_info) == 0)
-return (command_path);
-
-test_path = compose_test_path(
-shell->path_directories[i++],
-shell->command_arguments[0]
-);
-snprintf(command_path, 255, "%s", test_path);
-free(test_path);
+	pid_t child_pid;
+	if (access(command, X_OK) == 0)
+	{
+		child_pid = fork();
+		if (child_pid == -1)
+			print_error(vars, NULL);
+		if (child_pid == 0)
+		{
+			if (execve(command, vars->av, vars->env) == -1)
+				print_error(vars, NULL);
+		}
+		else
+		{
+			wait(&vars->status);
+			if (WIFEXITED(vars->status))
+				vars->status = WEXITSTATUS(vars->status);
+			else if (WIFSIGNALED(vars->status) && WTERMSIG(vars->status) == SIGINT)
+				vars->status = 130;
+			return (0);
+		}
+		vars->status = 127;
+		return (1);
+	}
+	else
+	{
+		print_error(vars, ": Permission denied\n");
+		vars->status = 126;
+	}
+	return (0);
 }
-free(command_path);
-
-return (NULL);
-}
-
 /**
- * compose_test_path - Concatenate command argv[0] to each
- * directory path.
- * @directory_path: Pointer to a directory in the PATH.
- * @command: The command.
- * Return: Pointer to the concatenated path or NULL on error.
+ * find_path - finds the PATH variable
+ * @env: array of environment variables
+ *
+ * Return: pointer to the node that contains the PATH, or NULL on failure
  */
-char *compose_test_path(char *directory_path, char *command)
+char *find_path(char **env)
 {
-int directory_path_len, command_len, total_path_len;
-int i = 0, j = 0;
-char *test_path;
-
-directory_path_len = strlen(directory_path);
-command_len = strlen(command);
-total_path_len = directory_path_len + command_len;
-
-test_path = malloc(sizeof(char) * total_path_len + 2);
-
-while (directory_path[i])
-{
-test_path[i] = directory_path[i];
-i++;
+	char *path = "PATH=";
+	unsigned int i, j;
+	for (i = 0; env[i] != NULL; i++)
+	{
+		for (j = 0; j < 5; j++)
+			if (path[j] != env[i][j])
+				break;
+		if (j == 5)
+			break;
+	}
+	return (env[i]);
 }
-test_path[i] = '/';
-i++;
-while (command[j])
-test_path[i++] = command[j++];
-
-test_path[i] = '\0';
-
-return (test_path);
-}
-
 /**
- * create_new_child_process - Forks a child process to
- * execute a command.
- * @shell: Pointer to the ShellState.
+ * check_for_path - checks if the command is in the PATH
+ * @vars: variables
+ *
  * Return: void
  */
-void create_new_child_process(ShellState_t *shell)
+void check_for_path(vars_t *vars)
 {
-pid_t child_pid;
-int status;
+	char *path, *path_dup = NULL, *check = NULL;
+	unsigned int i = 0, r = 0;
+	char **path_tokens;
+	struct stat buf;
 
-child_pid = fork();
-if (child_pid == -1)
-{
-perror("Fork failed");
+	if (check_for_dir(vars->av[0]))
+		r = execute_cwd(vars);
+	else
+	{
+		path = find_path(vars->env);
+		if (path != NULL)
+		{
+			path_dup = _strdup(path + 5);
+			path_tokens = tokenize(path_dup, ":");
+			for (i = 0; path_tokens && path_tokens[i]; i++, free(check))
+			{
+				check = _strcat(path_tokens[i], vars->av[0]);
+				if (stat(check, &buf) == 0)
+				{
+					r = path_execute(check, vars);
+					free(check);
+					break;
+				}
+			}
+			free(path_dup);
+			if (path_tokens == NULL)
+			{
+				vars->status = 127;
+				new_exit(vars);
+			}
+		}
+		if (path == NULL || path_tokens[i] == NULL)
+		{
+			print_error(vars, ": not found\n");
+			vars->status = 127;
+		}
+		free(path_tokens);
+	}
+	if (r == 1)
+		new_exit(vars);
 }
-else if (child_pid > 0)
-{
-wait(&status);
-}
-else if (child_pid == 0)
-{
-execve(
-shell->executable_command_path,
-shell->command_arguments,
-shell->environment_variables
-);
-}
-
-if (WIFEXITED(status))
-{
-shell->exit_status = WEXITSTATUS(status);
-}
-
-if (child_pid != 0)
-{
-fflush(stdout);
-fflush(stdin);
-}
-}
-
 /**
- * handle_error - Display an error message based on the error code.
- * @shell: Pointer to the ShellState (includes error code).
- * @error_code: Code to invoke corresponding error.
+ * execute_cwd - executes the command in the current working directory
+ * @vars: pointer to struct of variables
+ *
+ * Return: 0 on success, 1 on failure
  */
-void handle_error(ShellState_t *shell, int error_code)
+int execute_cwd(vars_t *vars)
 {
-char specific_error[20];
-char error_message[255];
+	pid_t child_pid;
+	struct stat buf;
 
-switch (error_code)
-{
-case 1:
-snprintf(specific_error, 20, "%s", "Permission denied\n");
-break;
-case 2:
-snprintf(specific_error, 20, "%s", "not found\n");
-break;
-case 3:
-snprintf(specific_error, 20, "%s", "Can't open\n");
-break;
-default:
-snprintf(specific_error, 20, "%s", "Unknown Error\n");
-break;
+	if (stat(vars->av[0], &buf) == 0)
+	{
+		if (access(vars->av[0], X_OK) == 0)
+		{
+			child_pid = fork();
+			if (child_pid == -1)
+				print_error(vars, NULL);
+			if (child_pid == 0)
+			{
+				if (execve(vars->av[0], vars->av, vars->env) == -1)
+					print_error(vars, NULL);
+			}
+			else
+			{
+				wait(&vars->status);
+				if (WIFEXITED(vars->status))
+					vars->status = WEXITSTATUS(vars->status);
+				else if (WIFSIGNALED(vars->status) && WTERMSIG(vars->status) == SIGINT)
+					vars->status = 130;
+				return (0);
+			}
+			vars->status = 127;
+			return (1);
+		}
+		else
+		{
+			print_error(vars, ": Permission denied\n");
+			vars->status = 126;
+		}
+		return (0);
+	}
+	print_error(vars, ": not found\n");
+	vars->status = 127;
+	return (0);
 }
-
-snprintf(
-error_message,
-255,
-"%s: %d: %s: %s",
-getenv("_"),
-shell->line_number,
-shell->command_arguments[0],
-specific_error
-);
-
-fprintf(stderr, "%s", error_message);
-
+/**
+ * check_for_dir - checks if the command is a part of a path
+ * @str: command
+ *
+ * Return: 1 on success, 0 on failure
+ */
+int check_for_dir(char *str)
+{
+	unsigned int i;
+	for (i = 0; str[i]; i++)
+	{
+		if (str[i] == '/')
+			return (1);
+	}
+	return (0);
 }

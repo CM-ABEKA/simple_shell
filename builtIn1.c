@@ -1,18 +1,19 @@
 #include "shell.h"
 
 /**
- * check_for_builtins - checks if the command is a builtin
- * @vars: variables
- * Return: pointer to the function or NULL
+ * check_builtins - Check if the command is a builtin
+ * @vars: Shell variables
+ *
+ * Returns: Pointer to the function or NULL
  */
-void (*check_for_builtins(vars_t *vars))(vars_t *vars)
+void (*check_builtins(vars_t *vars))(vars_t *vars)
 {
 	unsigned int i;
 	builtins_t check[] = {
-		{"exit", new_exit},
-		{"env", _env},
-		{"setenv", new_setenv},
-		{"unsetenv", new_unsetenv},
+		{"exit", shell_exit},
+		{"env", print_environment},
+		{"setenv", set_environment},
+		{"unsetenv", unset_environment},
 		{NULL, NULL}
 	};
 
@@ -27,11 +28,12 @@ void (*check_for_builtins(vars_t *vars))(vars_t *vars)
 }
 
 /**
- * new_exit - exit program
- * @vars: variables
- * Return: void
+ * shell_exit - Exit the shell
+ * @vars: Shell variables
+ *
+ * Exits the shell with the provided status or an error status if invalid.
  */
-void new_exit(vars_t *vars)
+void shell_exit(vars_t *vars)
 {
 	int status;
 
@@ -53,16 +55,17 @@ void new_exit(vars_t *vars)
 	free(vars->buffer);
 	free(vars->av);
 	free(vars->commands);
-	free_env(vars->env);
+	free_environment(vars->env);
 	exit(vars->status);
 }
 
 /**
- * _env - prints the current environment
- * @vars: struct of variables
- * Return: void.
+ * print_environment - Print the current environment
+ * @vars: Shell variables
+ *
+ * Prints the current environment variables.
  */
-void _env(vars_t *vars)
+void print_environment(vars_t *vars)
 {
 	unsigned int i;
 
@@ -75,12 +78,12 @@ void _env(vars_t *vars)
 }
 
 /**
- * new_setenv - create a new environment variable, or edit an existing variable
- * @vars: pointer to struct of variables
+ * set_environment - Set or edit an environment variable
+ * @vars: Shell variables
  *
- * Return: void
+ * Create a new environment variable or edit an existing one.
  */
-void new_setenv(vars_t *vars)
+void set_environment(vars_t *vars)
 {
 	char **key;
 	char *var;
@@ -91,19 +94,19 @@ void new_setenv(vars_t *vars)
 		vars->status = 2;
 		return;
 	}
-	key = find_key(vars->env, vars->av[1]);
+	key = find_env_key(vars->env, vars->av[1]);
 	if (key == NULL)
-		add_key(vars);
+		add_env_key(vars);
 	else
 	{
-		var = add_value(vars->av[1], vars->av[2]);
+		var = add_env_value(vars->av[1], vars->av[2]);
 		if (var == NULL)
 		{
 			print_error(vars, NULL);
 			free(vars->buffer);
 			free(vars->commands);
 			free(vars->av);
-			free_env(vars->env);
+			free_environment(vars->env);
 			exit(127);
 		}
 		free(*key);
@@ -113,15 +116,14 @@ void new_setenv(vars_t *vars)
 }
 
 /**
- * new_unsetenv - remove an environment variable
- * @vars: pointer to a struct of variables
+ * unset_environment - Remove an environment variable
+ * @vars: Shell variables
  *
- * Return: void
+ * Removes an environment variable.
  */
-void new_unsetenv(vars_t *vars)
+void unset_environment(vars_t *vars)
 {
 	char **key, **newenv;
-
 	unsigned int i, j;
 
 	if (vars->av[1] == NULL)
@@ -130,7 +132,7 @@ void new_unsetenv(vars_t *vars)
 		vars->status = 2;
 		return;
 	}
-	key = find_key(vars->env, vars->av[1]);
+	key = find_env_key(vars->env, vars->av[1]);
 	if (key == NULL)
 	{
 		print_error(vars, ": No variable to unset");
@@ -143,7 +145,7 @@ void new_unsetenv(vars_t *vars)
 	{
 		print_error(vars, NULL);
 		vars->status = 127;
-		new_exit(vars);
+		shell_exit(vars);
 	}
 	for (i = 0; vars->env[i] != *key; i++)
 		newenv[i] = vars->env[i];

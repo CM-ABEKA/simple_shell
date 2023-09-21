@@ -4,7 +4,7 @@
  * display_prompt - Display the shell prompt.
  * @vars: Pointer to the shell variables structure.
  */
-void display_prompt(vars_t *vars) {
+void display_prompt(vars_t *vars __attribute__((unused))) {
     if (isatty(STDIN_FILENO)) {
         _puts(PROMPT);
     }
@@ -29,9 +29,7 @@ int read_command(vars_t *vars) {
         _puts(PROMPT);
     }
 
-
     read_bytes = getline(&(vars->buffer), &bufsize, stdin);
-
 
     if (read_bytes == -1 || read_bytes == 0) {
         if (read_bytes == -1) {
@@ -39,8 +37,6 @@ int read_command(vars_t *vars) {
         }
         return -1;
     }
-
-
 
     if (vars->buffer[read_bytes - 1] == '\n') {
         vars->buffer[read_bytes - 1] = '\0';
@@ -62,7 +58,7 @@ void parse_and_execute(vars_t *vars) {
         return;
     }
 
-    builtin_func = check_for_builtins(vars);
+    builtin_func = check_builtins(vars);
     if (builtin_func != NULL) {
         builtin_func(vars);
     } else {

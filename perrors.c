@@ -1,11 +1,11 @@
 #include "shell.h"
 
 /**
- * print_error - prints error messages to standard error
- * @vars: pointer to struct of variables
- * @msg: message to print
+ * print_error - Prints error messages to standard error
+ * @vars: Pointer to struct of variables
+ * @msg: Message to print
  *
- * Return: void
+ * Returns: void
  */
 void print_error(vars_t *vars, char *msg)
 {
@@ -23,14 +23,16 @@ void print_error(vars_t *vars, char *msg)
 		_puts2(msg);
 	}
 	else
+	{
 		perror("");
+	}
 }
 
 /**
- * _puts2 - prints a string to standard error
- * @str: string to print
+ * _puts2 - Prints a string to standard error
+ * @str: String to print
  *
- * Return: void
+ * Returns: void
  */
 void _puts2(char *str)
 {
@@ -43,14 +45,13 @@ void _puts2(char *str)
 		perror("Fatal Error");
 		exit(1);
 	}
-
 }
 
 /**
- * _uitoa - converts an unsigned int to a string
- * @count: unsigned int to convert
+ * _uitoa - Converts an unsigned int to a string
+ * @count: Unsigned int to convert
  *
- * Return: pointer to the converted string
+ * Returns: Pointer to the converted string
  */
 char *_uitoa(unsigned int count)
 {
@@ -63,7 +64,7 @@ char *_uitoa(unsigned int count)
 	numstr = malloc(sizeof(char) * (digits + 1));
 	if (numstr == NULL)
 	{
-		perror("Fatal Error1");
+		perror("Fatal Error");
 		exit(127);
 	}
 	numstr[digits] = '\0';

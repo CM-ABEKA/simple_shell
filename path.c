@@ -1,19 +1,22 @@
 #include "shell.h"
+
 /**
- * path_execute - executes a command in the path
- * @command: full path to the command
- * @vars: pointer to struct of variables
+ * execute_command - Executes a command with the provided arguments
+ * @command: Full path to the command
+ * @vars: Pointer to struct of variables
  *
- * Return: 0 on succcess, 1 on failure
+ * Returns: 0 on success, 1 on failure
  */
-int path_execute(char *command, vars_t *vars)
+int execute_command(char *command, vars_t *vars)
 {
 	pid_t child_pid;
+
 	if (access(command, X_OK) == 0)
 	{
 		child_pid = fork();
 		if (child_pid == -1)
 			print_error(vars, NULL);
+
 		if (child_pid == 0)
 		{
 			if (execve(command, vars->av, vars->env) == -1)
@@ -38,44 +41,49 @@ int path_execute(char *command, vars_t *vars)
 	}
 	return (0);
 }
+
 /**
- * find_path - finds the PATH variable
- * @env: array of environment variables
+ * find_env_path - Finds the PATH variable in the environment
+ * @env: Array of environment variables
  *
- * Return: pointer to the node that contains the PATH, or NULL on failure
+ * Returns: Pointer to the PATH variable, or NULL on failure
  */
-char *find_path(char **env)
+char *find_env_path(char **env)
 {
 	char *path = "PATH=";
 	unsigned int i, j;
+
 	for (i = 0; env[i] != NULL; i++)
 	{
 		for (j = 0; j < 5; j++)
+		{
 			if (path[j] != env[i][j])
 				break;
+		}
 		if (j == 5)
 			break;
 	}
 	return (env[i]);
 }
+
 /**
- * check_for_path - checks if the command is in the PATH
- * @vars: variables
+ * search_path - Search for the command in the directories specified in PATH
+ * @vars: Pointer to struct of variables
  *
- * Return: void
+ * Returns: void
  */
-void check_for_path(vars_t *vars)
+void search_path(vars_t *vars)
 {
 	char *path, *path_dup = NULL, *check = NULL;
 	unsigned int i = 0, r = 0;
 	char **path_tokens;
 	struct stat buf;
 
-	if (check_for_dir(vars->av[0]))
-		r = execute_cwd(vars);
+	if (check_cmd_in_cwd(vars->av[0]))
+		r = execute_cmd_in_cwd(vars);
 	else
 	{
-		path = find_path(vars->env);
+		path = find_env_path(vars->env);
 		if (path != NULL)
 		{
 			path_dup = _strdup(path + 5);
@@ -85,7 +93,7 @@ void check_for_path(vars_t *vars)
 				check = _strcat(path_tokens[i], vars->av[0]);
 				if (stat(check, &buf) == 0)
 				{
-					r = path_execute(check, vars);
+					r = execute_command(check, vars);
 					free(check);
 					break;
 				}
@@ -94,7 +102,7 @@ void check_for_path(vars_t *vars)
 			if (path_tokens == NULL)
 			{
 				vars->status = 127;
-				new_exit(vars);
+				shell_exit(vars);
 			}
 		}
 		if (path == NULL || path_tokens[i] == NULL)
@@ -105,15 +113,16 @@ void check_for_path(vars_t *vars)
 		free(path_tokens);
 	}
 	if (r == 1)
-		new_exit(vars);
+		shell_exit(vars);
 }
+
 /**
- * execute_cwd - executes the command in the current working directory
- * @vars: pointer to struct of variables
+ * execute_cmd_in_cwd - Execute the command in the current working directory
+ * @vars: Pointer to struct of variables
  *
- * Return: 0 on success, 1 on failure
+ * Returns: 0 on success, 1 on failure
  */
-int execute_cwd(vars_t *vars)
+int execute_cmd_in_cwd(vars_t *vars)
 {
 	pid_t child_pid;
 	struct stat buf;
@@ -125,6 +134,7 @@ int execute_cwd(vars_t *vars)
 			child_pid = fork();
 			if (child_pid == -1)
 				print_error(vars, NULL);
+
 			if (child_pid == 0)
 			{
 				if (execve(vars->av[0], vars->av, vars->env) == -1)
@@ -153,15 +163,17 @@ int execute_cwd(vars_t *vars)
 	vars->status = 127;
 	return (0);
 }
+
 /**
- * check_for_dir - checks if the command is a part of a path
- * @str: command
+ * check_command_in_current_directory - Checks if the command is in the current directory
+ * @str: Command
  *
- * Return: 1 on success, 0 on failure
+ * Returns: 1 on success, 0 on failure
  */
-int check_for_dir(char *str)
+int check_cmd_in_cwd(char *str)
 {
 	unsigned int i;
+
 	for (i = 0; str[i]; i++)
 	{
 		if (str[i] == '/')
@@ -169,3 +181,4 @@ int check_for_dir(char *str)
 	}
 	return (0);
 }
+

@@ -1,12 +1,12 @@
 #include "shell.h"
 
 /**
- * add_key - create a new environment variable
- * @vars: pointer to struct of variables
+ * add_env_key - Create a new environment variable
+ * @vars: Shell variables
  *
- * Return: void
+ * Creates a new environment variable and adds it to the environment.
  */
-void add_key(vars_t *vars)
+void add_env_key(vars_t *vars)
 {
 	unsigned int i;
 	char **newenv;
@@ -18,18 +18,18 @@ void add_key(vars_t *vars)
 	{
 		print_error(vars, NULL);
 		vars->status = 127;
-		new_exit(vars);
+		shell_exit(vars);
 	}
 	for (i = 0; vars->env[i] != NULL; i++)
 		newenv[i] = vars->env[i];
-	newenv[i] = add_value(vars->av[1], vars->av[2]);
+	newenv[i] = add_env_value(vars->av[1], vars->av[2]);
 	if (newenv[i] == NULL)
 	{
 		print_error(vars, NULL);
 		free(vars->buffer);
 		free(vars->commands);
 		free(vars->av);
-		free_env(vars->env);
+		free_environment(vars->env);
 		free(newenv);
 		exit(127);
 	}
@@ -39,13 +39,13 @@ void add_key(vars_t *vars)
 }
 
 /**
- * find_key - finds an environment variable
- * @env: array of environment variables
- * @key: environment variable to find
+ * find_env_key - Find an environment variable
+ * @env: Array of environment variables
+ * @key: Environment variable to find
  *
- * Return: pointer to address of the environment variable
+ * Returns: Pointer to the address of the environment variable
  */
-char **find_key(char **env, char *key)
+char **find_env_key(char **env, char *key)
 {
 	unsigned int i, j, len;
 
@@ -62,13 +62,13 @@ char **find_key(char **env, char *key)
 }
 
 /**
- * add_value - create a new environment variable string
- * @key: variable name
- * @value: variable value
+ * add_env_value - Create a new environment variable string
+ * @key: Variable name
+ * @value: Variable value
  *
- * Return: pointer to the new string;
+ * Returns: Pointer to the new string
  */
-char *add_value(char *key, char *value)
+char *add_env_value(char *key, char *value)
 {
 	unsigned int len1, len2, i, j;
 	char *new;
@@ -88,10 +88,10 @@ char *add_value(char *key, char *value)
 }
 
 /**
- * _atoi - converts a string into an integer
- * @str: string to convert
+ * _atoi - Convert a string into an integer
+ * @str: String to convert
  *
- * Return: the integer value, or -1 if an error occurs
+ * Returns: The integer value, or -1 if an error occurs
  */
 int _atoi(char *str)
 {

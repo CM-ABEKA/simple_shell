@@ -8,21 +8,21 @@
  */
 char **create_environment(char **env)
 {
-	char **new_env = NULL;
-	size_t i;
+char **new_env = NULL;
+size_t i;
 
-	for (i = 0; env[i] != NULL; i++)
-		;
-	new_env = malloc(sizeof(char *) * (i + 1));
-	if (new_env == NULL)
-	{
-		perror("Fatal Error");
-		exit(1);
-	}
-	for (i = 0; env[i] != NULL; i++)
-		new_env[i] = _strdup(env[i]);
-	new_env[i] = NULL;
-	return (new_env);
+for (i = 0; env[i] != NULL; i++)
+;
+new_env = malloc(sizeof(char *) * (i + 1));
+if (new_env == NULL)
+{
+perror("Fatal Error");
+exit(1);
+}
+for (i = 0; env[i] != NULL; i++)
+new_env[i] = _strdup(env[i]);
+new_env[i] = NULL;
+return (new_env);
 }
 
 /**
@@ -33,9 +33,9 @@ char **create_environment(char **env)
  */
 void free_environment(char **env)
 {
-	unsigned int i;
+unsigned int i;
 
-	for (i = 0; env[i] != NULL; i++)
-		free(env[i]);
-	free(env);
+for (i = 0; env[i] != NULL; i++)
+free(env[i]);
+free(env);
 }

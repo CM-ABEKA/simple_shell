@@ -8,16 +8,16 @@
  */
 ssize_t _puts(char *str)
 {
-	ssize_t num, len;
+ssize_t num, len;
 
-	num = _strlen(str);
-	len = write(STDOUT_FILENO, str, num);
-	if (len != num)
-	{
-		perror("Fatal Error");
-		return (-1);
-	}
-	return (len);
+num = _strlen(str);
+len = write(STDOUT_FILENO, str, num);
+if (len != num)
+{
+perror("Fatal Error");
+return (-1);
+}
+return (len);
 }
 
 /**
@@ -28,21 +28,21 @@ ssize_t _puts(char *str)
  */
 char *_strdup(char *src)
 {
-	char *copy;
-	int length, i;
+char *copy;
+int length, i;
 
-	if (src == 0)
-		return (NULL);
+if (src == 0)
+return (NULL);
 
-	for (length = 0; src[length]; length++)
-		;
+for (length = 0; src[length]; length++)
+;
 
-	copy = malloc((length + 1) * sizeof(char));
+copy = malloc((length + 1) * sizeof(char));
 
-	for (i = 0; i <= length; i++)
-		copy[i] = src[i];
+for (i = 0; i <= length; i++)
+copy[i] = src[i];
 
-	return (copy);
+return (copy);
 }
 
 /**
@@ -54,16 +54,16 @@ char *_strdup(char *src)
  */
 int _strcmpr(char *str1, char *str2)
 {
-	int i;
+int i;
 
-	i = 0;
-	while (str1[i] == str2[i])
-	{
-		if (str1[i] == '\0')
-			return (0);
-		i++;
-	}
-	return (str1[i] - str2[i]);
+i = 0;
+while (str1[i] == str2[i])
+{
+if (str1[i] == '\0')
+return (0);
+i++;
+}
+return (str1[i] - str2[i]);
 }
 
 /**
@@ -75,22 +75,22 @@ int _strcmpr(char *str1, char *str2)
  */
 char *_strcat(char *str1, char *str2)
 {
-	char *newstr;
-	unsigned int len1, len2, newlen, i, j;
+char *newstr;
+unsigned int len1, len2, newlen, i, j;
 
-	len1 = (str1 == NULL) ? 0 : _strlen(str1);
-	len2 = (str2 == NULL) ? 0 : _strlen(str2);
-	newlen = len1 + len2 + 2;
-	newstr = malloc(newlen * sizeof(char));
-	if (newstr == NULL)
-		return (NULL);
-	for (i = 0; i < len1; i++)
-		newstr[i] = str1[i];
-	newstr[i] = '/';
-	for (j = 0; j < len2; j++)
-		newstr[i + 1 + j] = str2[j];
-	newstr[len1 + len2 + 1] = '\0';
-	return (newstr);
+len1 = (str1 == NULL) ? 0 : _strlen(str1);
+len2 = (str2 == NULL) ? 0 : _strlen(str2);
+newlen = len1 + len2 + 2;
+newstr = malloc(newlen * sizeof(char));
+if (newstr == NULL)
+return (NULL);
+for (i = 0; i < len1; i++)
+newstr[i] = str1[i];
+newstr[i] = '/';
+for (j = 0; j < len2; j++)
+newstr[i + 1 + j] = str2[j];
+newstr[len1 + len2 + 1] = '\0';
+return (newstr);
 }
 
 /**
@@ -101,12 +101,12 @@ char *_strcat(char *str1, char *str2)
  */
 unsigned int _strlen(char *str)
 {
-	unsigned int len;
+unsigned int len;
 
-	len = 0;
+len = 0;
 
-	while (str[len])
-		len++;
+while (str[len])
+len++;
 
-	return (len);
+return (len);
 }
